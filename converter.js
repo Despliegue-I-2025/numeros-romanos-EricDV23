@@ -1,68 +1,81 @@
 const InvalidRomanNumeralError = require("./errors/InvalidRomanNumeralError");
 
-const map = { I:1, V:5, X:10, L:50, C:100, D:500, M:1000 };
-const invalidPatterns = [
-  /IIII/, /VV/, /LL/, /DD/,
-  /IL/, /IC/, /ID/, /IM/,
-  /XD/, /XM/,
-  /VX/, /LC/, /DM/
-];
-
 function romanToArabic(roman) {
-  if (!roman || typeof roman !== "string" || roman.trim() === "") {
-    throw new InvalidRomanNumeralError(roman, "Romano vacío o inválido");
-  }
+  if (!roman || typeof roman !== "string")
+    throw new InvalidRomanNumeralError("Entrada inválida.");
 
   roman = roman.toUpperCase();
 
-  if (!/^[IVXLCDM]+$/.test(roman)) {
-    throw new InvalidRomanNumeralError(roman, "Número romano inválido");
-  }
+  // Validar caracteres
+  if (!/^[MDCLXVI]+$/.test(roman))
+    throw new InvalidRomanNumeralError("Romano inválido.");
 
-  for (const pat of invalidPatterns) {
-    if (pat.test(roman)) {
-      throw new InvalidRomanNumeralError(roman, "Número romano inválido");
+  // Validar repeticiones ilegales
+  if (/IIII|XXXX|CCCC|MMMM/.test(roman))
+    throw new InvalidRomanNumeralError("Romano inválido.");
+
+  // Validar repeticiones de V, L, D (no pueden repetirse)
+  if (/VV|LL|DD/.test(roman))
+    throw new InvalidRomanNumeralError("Romano inválido.");
+
+  // Validar sustracciones ilegales
+  if (/IL|IC|ID|IM|XD|XM|VX|LC|DM/.test(roman))
+    throw new InvalidRomanNumeralError("Romano inválido.");
+
+  const map = {
+    M: 1000, CM: 900, D: 500, CD: 400,
+    C: 100, XC: 90, L: 50, XL: 40,
+    X: 10, IX: 9, V: 5, IV: 4, I: 1
+  };
+
+  let i = 0;
+  let result = 0;
+
+  while (i < roman.length) {
+    if (i + 1 < roman.length && map[roman.substring(i, i + 2)]) {
+      result += map[roman.substring(i, i + 2)];
+      i += 2;
+    } else {
+      result += map[roman[i]];
+      i++;
     }
   }
 
-  let total = 0, prev = 0;
-  for (let i = roman.length - 1; i >= 0; i--) {
-    const curr = map[roman[i]];
-    if (curr < prev) total -= curr;
-    else total += curr;
-    prev = curr;
-  }
-
-  if (total < 1 || total > 3999) {
-    throw new InvalidRomanNumeralError(roman, "Número fuera de rango");
-  }
-
-  // Validación canónica
-  const reconv = arabicToRoman(total);
-  if (reconv !== roman) {
-    throw new InvalidRomanNumeralError(roman, "Número romano inválido");
-  }
-
-  return total;
+  return result;
 }
 
-function arabicToRoman(n) {
-  if (!Number.isInteger(n)) throw new Error("Debe ser un entero.");
-  if (n < 1 || n > 3999) throw new Error("Número fuera de rango");
+function arabicToRoman(number) {
+  if (typeof number !== "number" || isNaN(number))
+    throw new InvalidRomanNumeralError("Número inválido.");
 
-  const pairs = [
-    ["M",1000], ["CM",900], ["D",500], ["CD",400],
-    ["C",100], ["XC",90], ["L",50], ["XL",40],
-    ["X",10], ["IX",9], ["V",5], ["IV",4], ["I",1]
+  if (number < 1 || number > 3999)
+    throw new InvalidRomanNumeralError("Fuera de rango (1-3999).");
+
+  const map = [
+    { value: 1000, numeral: "M" },
+    { value: 900, numeral: "CM" },
+    { value: 500, numeral: "D" },
+    { value: 400, numeral: "CD" },
+    { value: 100, numeral: "C" },
+    { value: 90, numeral: "XC" },
+    { value: 50, numeral: "L" },
+    { value: 40, numeral: "XL" },
+    { value: 10, numeral: "X" },
+    { value: 9, numeral: "IX" },
+    { value: 5, numeral: "V" },
+    { value: 4, numeral: "IV" },
+    { value: 1, numeral: "I" }
   ];
 
   let result = "";
-  for (const [sym,val] of pairs) {
-    while (n >= val) {
-      result += sym;
-      n -= val;
+
+  for (const item of map) {
+    while (number >= item.value) {
+      result += item.numeral;
+      number -= item.value;
     }
   }
+
   return result;
 }
 
