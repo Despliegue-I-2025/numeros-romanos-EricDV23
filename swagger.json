@@ -1,0 +1,41 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Roman Converter API",
+    "version": "1.0.0",
+    "description": "API REST que convierte números Romanos ↔ Arábigos. Manejo de errores robusto (RFC 7807 style)."
+  },
+  "servers": [
+    { "url": "/" }
+  ],
+  "paths": {
+    "/api/v1/r2a": {
+      "get": {
+        "summary": "Convierte número romano a arábigo",
+        "parameters": [
+          { "name": "roman", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Conversión exitosa", "content": { "application/json": { "schema": { "type": "object", "properties": { "input": { "type": "string" }, "output": { "type": "integer" } } } } } },
+          "400": { "description": "Número romano inválido / parámetro faltante" },
+          "422": { "description": "Número fuera de rango" },
+          "500": { "description": "Error interno del servidor" }
+        }
+      }
+    },
+    "/api/v1/a2r": {
+      "get": {
+        "summary": "Convierte número arábigo a romano",
+        "parameters": [
+          { "name": "arabic", "in": "query", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Conversión exitosa", "content": { "application/json": { "schema": { "type": "object", "properties": { "input": { "type": "integer" }, "output": { "type": "string" } } } } } },
+          "400": { "description": "Parámetro inválido / mal formado" },
+          "422": { "description": "Número fuera de rango" },
+          "500": { "description": "Error interno del servidor" }
+        }
+      }
+    }
+  }
+}
