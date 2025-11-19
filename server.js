@@ -1,27 +1,56 @@
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
-const swaggerUi = require('swagger-ui-express');
-const swaggerDoc = require('./swagger.json');
-const converterRoutes = require('./routes/converterRoutes');
-const errorHandler = require('./middlewares/errorHandler');
 
-app.use(express.json());
+const { romanToArabic, arabicToRoman } = require('./converter');
 
-// Health
-app.get('/', (req, res) => res.json({ status: 'ok', service: 'roman-converter' }));
+// -----------------------
+// ENDPOINTS OFICIALES
+// -----------------------
 
-// Swagger UI (documentación)
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+// Romano → Arábigo  (la prueba usa /r2a)
+app.get('/r2a', (req, res) => {
+  const roman = req.query.roman;
 
-// Rutas versionadas
-app.use('/api/v1', converterRoutes);
+  // parámetro faltante
+  if (!roman || roman.trim() === "") {
+    return res.status(400).json({ error: 'Parametro roman requerido.' });
+  }
 
-// Middleware de errores (RFC 7807 style)
-app.use(errorHandler);
+  try {
+    const result = romanToArabic(roman);
+    return res.json({ arabic: result });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
+
+// Arábigo → Romano (la prueba usa /a2r)
+app.get('/a2r', (req, res) => {
+  const arabicRaw = req.query.arabic;
+
+  // parámetro faltante
+  if (!arabicRaw || arabicRaw.trim() === "") {
+    return res.status(400).json({ error: 'Parametro arabic requerido.' });
+  }
+
+  const arabic = Number(arabicRaw);
+
+  if (Number.isNaN(arabic)) {
+    return res.status(400).json({ error: 'Parametro arabic debe ser numerico.' });
+  }
+
+  try {
+    const roman = arabicToRoman(arabic);
+    return res.json({ roman });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
 
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+  console.log("Servidor corriendo en puerto", PORT);
+  app.listen(PORT);
 }
 
 module.exports = app;

@@ -1,15 +1,10 @@
 {
   "version": 2,
-  "name": "roman-converter",
   "builds": [
     { "src": "server.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/", "dest": "/server.js" },
-    { "src": "/api/v1/(.*)", "dest": "/server.js" },
-    { "src": "/api-docs", "dest": "/server.js" }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+    { "src": "/r2a", "dest": "/server.js" },
+    { "src": "/a2r", "dest": "/server.js" }
+  ]
 }
