@@ -1,0 +1,72 @@
+{
+  "tests": [
+    {
+      "description": "Romano → Arábigo válido",
+      "method": "post",
+      "endpoint": "/romanos/a-arabigo",
+      "payload": { "roman": "MCMXCIV" },
+      "expectedStatus": 200,
+      "expectedBody": { "arabic": 1994 }
+    },
+    {
+      "description": "Romano → Arábigo válido",
+      "method": "post",
+      "endpoint": "/romanos/a-arabigo",
+      "payload": { "roman": "MMMCMXCIX" },
+      "expectedStatus": 200,
+      "expectedBody": { "arabic": 3999 }
+    },
+    {
+      "description": "Romano → Arábigo válido",
+      "method": "post",
+      "endpoint": "/romanos/a-arabigo",
+      "payload": { "roman": "MMXXIII" },
+      "expectedStatus": 200,
+      "expectedBody": { "arabic": 2023 }
+    },
+    {
+      "description": "Arábigo → Romano válido",
+      "method": "post",
+      "endpoint": "/romanos/a-romano",
+      "payload": { "arabic": 7 },
+      "expectedStatus": 200,
+      "expectedBody": { "roman": "VII" }
+    },
+    {
+      "description": "Arábigo → Romano válido",
+      "method": "post",
+      "endpoint": "/romanos/a-romano",
+      "payload": { "arabic": 944 },
+      "expectedStatus": 200,
+      "expectedBody": { "roman": "CMXLIV" }
+    },
+    {
+      "description": "Error: romano vacío",
+      "method": "post",
+      "endpoint": "/romanos/a-arabigo",
+      "payload": { "roman": "" },
+      "expectedStatus": 400
+    },
+    {
+      "description": "Error: romano inválido",
+      "method": "post",
+      "endpoint": "/romanos/a-arabigo",
+      "payload": { "roman": "ASDF" },
+      "expectedStatus": 400
+    },
+    {
+      "description": "Error: árabigo vacío",
+      "method": "post",
+      "endpoint": "/romanos/a-romano",
+      "payload": { "arabic": "" },
+      "expectedStatus": 400
+    },
+    {
+      "description": "Error: arábigo fuera de rango",
+      "method": "post",
+      "endpoint": "/romanos/a-romano",
+      "payload": { "arabic": 5000 },
+      "expectedStatus": 422
+    }
+  ]
+}

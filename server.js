@@ -1,56 +1,36 @@
-const express = require('express');
+const express = require("express");
+const InvalidRomanNumeralError = require("./errors/InvalidRomanNumeralError");
+const { romanToArabic, arabicToRoman } = require("./converter");
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(express.json());
 
-const { romanToArabic, arabicToRoman } = require('./converter');
-
-// -----------------------
-// ENDPOINTS OFICIALES
-// -----------------------
-
-// Romano → Arábigo  (la prueba usa /r2a)
-app.get('/r2a', (req, res) => {
-  const roman = req.query.roman;
-
-  // parámetro faltante
-  if (!roman || roman.trim() === "") {
-    return res.status(400).json({ error: 'Parametro roman requerido.' });
-  }
-
+// POST /romanos/a-arabigo
+app.post("/romanos/a-arabigo", (req, res) => {
   try {
-    const result = romanToArabic(roman);
-    return res.json({ arabic: result });
+    const { roman } = req.body;
+    const arabic = romanToArabic(roman);
+    return res.status(200).json({ arabic });
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    if (err instanceof InvalidRomanNumeralError) {
+      return res.status(400).json({ error: err.message });
+    }
+    return res.status(400).json({ error: err.message || "Solicitud inválida" });
   }
 });
 
-// Arábigo → Romano (la prueba usa /a2r)
-app.get('/a2r', (req, res) => {
-  const arabicRaw = req.query.arabic;
-
-  // parámetro faltante
-  if (!arabicRaw || arabicRaw.trim() === "") {
-    return res.status(400).json({ error: 'Parametro arabic requerido.' });
-  }
-
-  const arabic = Number(arabicRaw);
-
-  if (Number.isNaN(arabic)) {
-    return res.status(400).json({ error: 'Parametro arabic debe ser numerico.' });
-  }
-
+// POST /romanos/a-romano
+app.post("/romanos/a-romano", (req, res) => {
   try {
+    const { arabic } = req.body;
     const roman = arabicToRoman(arabic);
-    return res.json({ roman });
+    return res.status(200).json({ roman });
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    if (err.message.includes("fuera de rango")) {
+      return res.status(422).json({ error: err.message });
+    }
+    return res.status(400).json({ error: err.message || "Solicitud inválida" });
   }
 });
-
-if (require.main === module) {
-  console.log("Servidor corriendo en puerto", PORT);
-  app.listen(PORT);
-}
 
 module.exports = app;

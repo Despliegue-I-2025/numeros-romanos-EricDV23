@@ -2,32 +2,29 @@ const express = require('express');
 const router = express.Router();
 const InvalidRomanNumeralError = require('../errors/InvalidRomanNumeralError');
 
-// Conversores (puras funciones internas)
 function validateRomanString(s) {
   return typeof s === 'string' && s.trim().length > 0;
 }
 
+// --- Conversores (los dejé tal cual los tenías) ---
 function romanToArabic(roman) {
-  if (!validateRomanString(roman)) throw new InvalidRomanNumeralError(roman, 'Debe proporcionar un número romano válido.');
+  if (!validateRomanString(roman)) throw new InvalidRomanNumeralError(roman, 'Parametro roman requerido.');
 
   const map = { I:1, V:5, X:10, L:50, C:100, D:500, M:1000 };
   const upper = roman.toUpperCase();
   let total = 0;
   let prev = 0;
 
-  // cálculo con resta cuando aplica
   for (let i = upper.length - 1; i >= 0; i--) {
     const ch = upper[i];
     const curr = map[ch];
-    if (!curr) throw new InvalidRomanNumeralError(roman, 'Contiene caracteres no válidos.');
+    if (!curr) throw new InvalidRomanNumeralError(roman, 'Caracteres romanos inválidos.');
     if (curr < prev) total -= curr; else total += curr;
     prev = curr;
   }
 
-  // chequeo rango
   if (total < 1 || total > 3999) throw new Error('Número fuera del rango permitido (1–3999).');
 
-  // validación final: reconvertir y comparar (evita IIV, VX, etc.)
   const reconv = arabicToRoman(total);
   if (reconv !== upper) throw new InvalidRomanNumeralError(roman, 'Formato romano no estándar o inválido.');
 
@@ -36,7 +33,7 @@ function romanToArabic(roman) {
 
 function arabicToRoman(arabic) {
   if (typeof arabic === 'string' && arabic.trim() !== '') arabic = Number(arabic);
-  if (!Number.isInteger(arabic)) throw new Error('El parámetro arabic debe ser un entero.');
+  if (!Number.isInteger(arabic)) throw new Error('Parametro arabic debe ser numerico.');
   if (arabic < 1 || arabic > 3999) throw new Error('Número fuera del rango permitido (1–3999).');
 
   const map = [
@@ -57,35 +54,47 @@ function arabicToRoman(arabic) {
   return result;
 }
 
-// GET /api/v1/r2a?roman=...
-router.get('/r2a', (req, res, next) => {
+// ------------------------------------------------------
+// ✔ NUEVOS ENDPOINTS POST para que los tests funcionen
+// ------------------------------------------------------
+
+// Romano → Arábigo (/romanos/a-arabigo)
+router.post('/romanos/a-arabigo', (req, res) => {
+  const { roman } = req.body || {};
+
+  if (!roman || roman.trim() === "") {
+    return res.status(400).json({ error: 'Parametro roman requerido.' });
+  }
+
   try {
-    const { roman } = req.query;
-    if (roman === undefined) {
-      // RFC7807-like error via throw to be caught by middleware
-      throw new InvalidRomanNumeralError(roman, 'Parámetro `roman` requerido.');
-    }
-    const output = romanToArabic(roman);
-    res.status(200).json({ input: roman.toUpperCase(), output });
+    const result = romanToArabic(roman);
+    return res.status(200).json({ arabic: result });
   } catch (err) {
-    next(err);
+    return res.status(400).json({ error: err.message });
   }
 });
 
-// GET /api/v1/a2r?arabic=...
-router.get('/a2r', (req, res, next) => {
+// Arábigo → Romano (/romanos/a-romano)
+router.post('/romanos/a-romano', (req, res) => {
+  const { arabic } = req.body || {};
+
+  if (arabic === "" || arabic === undefined) {
+    return res.status(400).json({ error: 'Parametro arabic requerido.' });
+  }
+
   try {
-    const { arabic } = req.query;
-    if (arabic === undefined) {
-      throw new Error('Parámetro `arabic` requerido.');
-    }
-    const parsed = parseInt(arabic, 10);
-    if (Number.isNaN(parsed)) throw new Error('Parámetro `arabic` debe ser un entero.');
-    const output = arabicToRoman(parsed);
-    res.status(200).json({ input: parsed, output });
+    const result = arabicToRoman(arabic);
+    return res.status(200).json({ roman: result });
   } catch (err) {
-    next(err);
+    // El test requiere 422 cuando está fuera de rango
+    if (err.message.includes('rango')) {
+      return res.status(422).json({ error: 'Número fuera del rango permitido (1–3999).' });
+    }
+
+    return res.status(400).json({ error: err.message });
   }
 });
 
 module.exports = router;
+
+
