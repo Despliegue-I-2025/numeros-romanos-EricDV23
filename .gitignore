@@ -4,3 +4,4 @@ coverage/
 .env
 .private
 .DS_Store
+.vercel
