@@ -62,3 +62,11 @@ app.get("/a2r", (req, res) => {
 });
 
 export default app;
+
+// Solo escuchar si se ejecuta en local (no tests y no producción serverless)
+if (process.env.NODE_ENV !== "test" && process.env.VERCEL !== "1") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  });
+}
