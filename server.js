@@ -6,6 +6,11 @@ import InvalidRomanNumeralError from "./errors/InvalidRomanNumeralError.js";
 const app = express();
 app.use(express.json());
 
+// Ruta raíz para verificar que el servidor funciona
+app.get("/", (req, res) => {
+  res.send("Servidor funcionando ✔️");
+});
+
 // POST: romano → arábigo
 app.post("/romanos/a-arabigo", (req, res) => {
   try {
