@@ -1,8 +1,6 @@
 {
   "name": "roman-converter",
   "version": "1.0.0",
-  "description": "Conversión entre números romanos y arábigos",
-  "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js",
@@ -10,15 +8,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"
   },
-  "keywords": [
-    "roman",
-    "arabic",
-    "converter",
-    "express",
-    "jest"
-  ],
-  "author": "Eric Velázquez",
-  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
   "devDependencies": {
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
@@ -27,15 +21,7 @@
     "supertest": "^6.3.3"
   },
   "jest": {
-    "transform": {
-      "^.+\\.js$": "babel-jest"
-    },
+    "transform": { "^.+\\.js$": "babel-jest" },
     "testEnvironment": "node"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "serverless-http": "^3.1.0"
   }
 }
