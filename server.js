@@ -1,111 +1,59 @@
-const express = require("express");
-const InvalidRomanNumeralError = require("./errors/InvalidRomanNumeralError");
-const { romanToArabic, arabicToRoman } = require("./converter");
+// server.js
+import express from "express";
+import { romanToArabic, arabicToRoman } from "./converter.js";
+import InvalidRomanNumeralError from "./errors/InvalidRomanNumeralError.js";
 
 const app = express();
 app.use(express.json());
 
-/* ==========================
-   GET /r2a
-   ========================== */
-app.get("/r2a", (req, res) => {
-  try {
-    const value = req.query.value;
-
-    if (!value)
-      return res.status(400).json({ error: "Falta el parámetro 'value'." });
-
-    const result = romanToArabic(value);
-    return res.json({ arabic: result });
-
-  } catch (err) {
-    if (err instanceof InvalidRomanNumeralError)
-      return res.status(400).json({ error: err.message });
-
-    return res.status(500).json({ error: "Error interno" });
-  }
-});
-
-/* ==========================
-   GET /a2r
-   ========================== */
-app.get("/a2r", (req, res) => {
-  try {
-    const value = req.query.value;
-
-    if (value === undefined)
-      return res.status(400).json({ error: "Falta el parámetro 'value'." });
-
-    const num = Number(value);
-
-    if (isNaN(num))
-      return res.status(400).json({ error: "Debe ser un número." });
-
-    if (num <= 0)
-      return res.status(400).json({ error: "Debe ser un número positivo." });
-
-    if (num > 3999)
-      return res.status(422).json({ error: "Fuera de rango (1-3999)." });
-
-    const result = arabicToRoman(num);
-    return res.json({ roman: result });
-
-  } catch (err) {
-    if (err instanceof InvalidRomanNumeralError)
-      return res.status(422).json({ error: err.message });
-
-    return res.status(500).json({ error: "Error interno" });
-  }
-});
-
-/* ==========================
-   POST /romanos/a-arabigo
-   ========================== */
+// POST: romano → arábigo
 app.post("/romanos/a-arabigo", (req, res) => {
   try {
     const { roman } = req.body;
-
-    if (!roman)
-      return res.status(400).json({ error: "Falta 'roman' en el body." });
-
-    const result = romanToArabic(roman);
-    return res.json({ arabic: result });
-
+    if (!roman) throw new InvalidRomanNumeralError("Se requiere un número romano");
+    const arabic = romanToArabic(roman);
+    res.json({ arabic });
   } catch (err) {
-    if (err instanceof InvalidRomanNumeralError)
-      return res.status(400).json({ error: err.message });
-
-    return res.status(500).json({ error: "Error interno" });
+    res.status(400).json({ error: err.message });
   }
 });
 
-/* ==========================
-   POST /romanos/a-romano
-   ========================== */
+// POST: arábigo → romano
 app.post("/romanos/a-romano", (req, res) => {
   try {
     const { arabic } = req.body;
-
-    if (arabic === undefined)
-      return res.status(400).json({ error: "Falta 'arabic' en el body." });
-
-    const num = Number(arabic);
-
-    if (isNaN(num))
-      return res.status(400).json({ error: "Debe ser un número." });
-
-    if (num <= 0)
-      return res.status(400).json({ error: "Debe ser un número positivo." });
-
-    if (num > 3999)
-      return res.status(422).json({ error: "Fuera de rango (1-3999)." });
-
-    const result = arabicToRoman(num);
-    return res.json({ roman: result });
-
+    if (typeof arabic !== "number") throw new Error("Número arábigo inválido");
+    const roman = arabicToRoman(arabic);
+    res.json({ roman });
   } catch (err) {
-    return res.status(500).json({ error: "Error interno" });
+    res.status(400).json({ error: err.message });
   }
 });
 
-module.exports = app;
+// GET: /r2a
+app.get("/r2a", (req, res) => {
+  try {
+    const { value } = req.query;
+    if (!value) throw new InvalidRomanNumeralError("Se requiere valor romano");
+    const arabic = romanToArabic(value);
+    res.json({ arabic });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET: /a2r
+app.get("/a2r", (req, res) => {
+  try {
+    const value = Number(req.query.value);
+    if (isNaN(value) || value <= 0 || value > 3999) {
+      throw new Error("Número fuera de rango (1-3999)");
+    }
+    const roman = arabicToRoman(value);
+    res.json({ roman });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+export default app;

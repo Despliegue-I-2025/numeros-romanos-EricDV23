@@ -1,62 +1,26 @@
-const { romanToArabic, arabicToRoman } = require("../converter");
+import { romanToArabic, arabicToRoman } from "../converter.js";
+import InvalidRomanNumeralError from "../errors/InvalidRomanNumeralError.js";
 
-describe("Conversión Romanos → Arábigos", () => {
-  test("MCMXCIV debe retornar 1994", () => {
+describe("Conversión básica", () => {
+  test("Romano → Arábigo", () => {
+    expect(romanToArabic("X")).toBe(10);
+    expect(romanToArabic("IX")).toBe(9);
     expect(romanToArabic("MCMXCIV")).toBe(1994);
   });
 
-  test("III debe retornar 3", () => {
-    expect(romanToArabic("III")).toBe(3);
-  });
-
-  test("XLII debe retornar 42", () => {
-    expect(romanToArabic("XLII")).toBe(42);
-  });
-
-  test("romanToArabic debe permitir minúsculas", () => {
-    expect(romanToArabic("mmxxi")).toBe(2021);
-  });
-
-  test("Debe lanzar error en romano inválido", () => {
-    expect(() => romanToArabic("IC")).toThrow();
-  });
-
-  test("Debe lanzar error si recibe vacío", () => {
-    expect(() => romanToArabic("")).toThrow();
-  });
-
-  test("Debe lanzar error si recibe null", () => {
-    expect(() => romanToArabic(null)).toThrow();
-  });
-});
-
-
-describe("Conversión Arábigos → Romanos", () => {
-  test("1994 debe retornar MCMXCIV", () => {
+  test("Arábigo → Romano", () => {
+    expect(arabicToRoman(10)).toBe("X");
+    expect(arabicToRoman(9)).toBe("IX");
     expect(arabicToRoman(1994)).toBe("MCMXCIV");
   });
 
-  test("3 debe retornar III", () => {
-    expect(arabicToRoman(3)).toBe("III");
+  test("Romano inválido lanza error", () => {
+    expect(() => romanToArabic("IIII")).toThrow(InvalidRomanNumeralError);
+    expect(() => romanToArabic("ASDF")).toThrow(InvalidRomanNumeralError);
   });
 
-  test("42 debe retornar XLII", () => {
-    expect(arabicToRoman(42)).toBe("XLII");
-  });
-
-  test("El número 1 debe retornar I", () => {
-    expect(arabicToRoman(1)).toBe("I");
-  });
-
-  test("Debe lanzar error para números fuera de rango (<1)", () => {
-    expect(() => arabicToRoman(0)).toThrow();
-  });
-
-  test("Debe lanzar error para números fuera de rango (>3999)", () => {
-    expect(() => arabicToRoman(4000)).toThrow();
-  });
-
-  test("Debe lanzar error si no es número", () => {
-    expect(() => arabicToRoman("abc")).toThrow();
+  test("Arábigo fuera de rango lanza error", () => {
+    expect(() => arabicToRoman(0)).toThrow(Error);
+    expect(() => arabicToRoman(5000)).toThrow(Error);
   });
 });

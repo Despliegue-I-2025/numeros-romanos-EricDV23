@@ -1,10 +1,7 @@
-class InvalidRomanNumeralError extends Error {
-  constructor(input, message) {
+// errors/InvalidRomanNumeralError.js
+export default class InvalidRomanNumeralError extends Error {
+  constructor(message) {
     super(message);
     this.name = "InvalidRomanNumeralError";
-    this.input = input;
   }
 }
-
-module.exports = InvalidRomanNumeralError;
-
