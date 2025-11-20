@@ -1,51 +1,55 @@
-import express from "express";
-import { romanToArabic, arabicToRoman } from "./converter.js";
-import InvalidRomanNumeralError from "./errors/InvalidRomanNumeralError.js";
-
+const express = require('express');
+const cors = require('cors');
+const { toRoman, fromRoman } = require('./index');
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => res.send("Servidor funcionando ✔️"));
+// 🟩 a2r — número arábigo → romano
+app.get('/a2r', (req, res) => {
+  const arabicStr = req.query.arabic;
 
-app.post("/romanos/a-arabigo", (req, res) => {
-  try {
-    const { roman } = req.body;
-    if (!roman) throw new InvalidRomanNumeralError("Se requiere un número romano");
-    res.json({ arabic: romanToArabic(roman) });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  if (!arabicStr) {
+    return res.status(400).json({ error: 'Parámetro "arabic" requerido.' });
   }
+
+  if (!/^\d+$/.test(arabicStr)) {
+    return res.status(400).json({ error: "Parámetro 'arabic' debe ser un número válido." });
+  }
+
+  const arabic = parseInt(arabicStr, 10);
+  const result = toRoman(arabic);
+
+  if (typeof result !== "string" || result.includes("fuera de rango")) {
+    return res.status(400).json({ error: result });
+  }
+
+  return res.status(200).json({ roman: result });
 });
 
-app.post("/romanos/a-romano", (req, res) => {
-  try {
-    const { arabic } = req.body;
-    if (typeof arabic !== "number") throw new Error("Número arábigo inválido");
-    res.json({ roman: arabicToRoman(arabic) });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+
+// 🟨 r2a — número romano → arábigo
+app.get('/r2a', (req, res) => {
+  const roman = req.query.roman;
+
+  if (!roman) {
+    return res.status(400).json({ error: 'Parámetro "roman" requerido.' });
   }
+
+  const result = fromRoman(roman);
+
+  if (typeof result !== "number") {
+    return res.status(400).json({ error: result });
+  }
+
+  return res.status(200).json({ arabic: result });
 });
 
-app.get("/r2a", (req, res) => {
-  try {
-    const { value } = req.query;
-    if (!value) throw new InvalidRomanNumeralError("Se requiere valor romano");
-    res.json({ arabic: romanToArabic(value) });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+
+// Ruta básica
+app.get("/", (req, res) => {
+  res.send("API Convertidor Romano funcionando");
 });
 
-app.get("/a2r", (req, res) => {
-  try {
-    const value = Number(req.query.value);
-    if (isNaN(value) || value <= 0 || value > 3999)
-      throw new Error("Número fuera de rango (1-3999)");
-    res.json({ roman: arabicToRoman(value) });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-export default app;
+module.exports = app;
